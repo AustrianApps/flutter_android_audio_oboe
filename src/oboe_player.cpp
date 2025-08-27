@@ -10,52 +10,43 @@
 
 static OboePlayer oboePlayer;
 
-class MyCallback : public oboe::AudioStreamDataCallback, public oboe::AudioStreamErrorCallback {
-private:
-    OboePlayer *player;
-public:
-    explicit MyCallback(OboePlayer *player) : player(player) {
-    }
+oboe::DataCallbackResult
+OboePlayer::onAudioReady(oboe::AudioStream *audioStream, void *audioData, int32_t numFrames) {
+    int size = beep_data_size;
+    LOGI("==== onAudioReady() pos:%d, size: %d, numFrames:%d", pos, size, numFrames);
 
-    oboe::DataCallbackResult
-    onAudioReady(oboe::AudioStream *audioStream, void *audioData, int32_t numFrames) {
-        int size = player->beep_data_size;
-        LOGI("==== onAudioReady() pos:%d, size: %d, numFrames:%d", player->pos, size, numFrames);
+    // We requested AudioFormat::I16. So if the stream opens
+    // we know we got the I16 format.
+    // If you do not specify a format then you should check what format
+    // the stream has and cast to the appropriate type.
+    auto *outputData = static_cast<int16_t *>(audioData);
 
-        // We requested AudioFormat::I16. So if the stream opens
-        // we know we got the I16 format.
-        // If you do not specify a format then you should check what format
-        // the stream has and cast to the appropriate type.
-        auto *outputData = static_cast<int16_t *>(audioData);
-
-        // Generate random numbers (white noise) centered around zero.
-        for (int i = 0; i < numFrames; ++i) {
-            int p = player->pos++;
-            if (p < size) {
-                outputData[i] = player->beep_data[p];
-            } else {
-                LOGI("=== onAudioRead() - end of stream reached.");
-                return oboe::DataCallbackResult::Stop;
-            }
+    // Generate random numbers (white noise) centered around zero.
+    for (int i = 0; i < numFrames; ++i) {
+        int p = pos++;
+        if (p < size) {
+            outputData[i] = beep_data[p];
+        } else {
+            LOGI("=== onAudioRead() - end of stream reached.");
+            return oboe::DataCallbackResult::Stop;
         }
-
-        return oboe::DataCallbackResult::Continue;
     }
 
-    bool onError(oboe::AudioStream *, oboe::Result error) override {
-        LOGI("==== onError() error:%d", error);
+    return oboe::DataCallbackResult::Continue;
+}
 
-    }
+bool OboePlayer::onError(oboe::AudioStream *, oboe::Result error) {
+    LOGI("==== onError() error:%d", error);
 
-    void onErrorAfterClose(oboe::AudioStream *, oboe::Result error) override {
-        LOGI("==== onErrorAfterClose() error:%d", error);
-    }
+}
 
-    void onErrorBeforeClose(oboe::AudioStream *, oboe::Result error) override {
-        LOGI("==== onErrorBeforeClose() error:%d", error);
-    }
+void OboePlayer::onErrorAfterClose(oboe::AudioStream *, oboe::Result error) {
+    LOGI("==== onErrorAfterClose() error:%d", error);
+}
 
-};
+void OboePlayer::onErrorBeforeClose(oboe::AudioStream *, oboe::Result error) {
+    LOGI("==== onErrorBeforeClose() error:%d", error);
+}
 
 void OboePlayer::playBeep() {
     LOGI("from class: Need to play beep!");
@@ -66,10 +57,9 @@ void OboePlayer::playBeep() {
     builder.setSharingMode(oboe::SharingMode::Exclusive);
     builder.setFormat(oboe::AudioFormat::I16);
     builder.setChannelCount(oboe::ChannelCount::Mono);
-    auto *cb = new MyCallback(this);
-    builder.setDataCallback(cb);
-    builder.setErrorCallback(cb);
-    std::shared_ptr <oboe::AudioStream> mStream;
+//    auto *cb = new MyCallback(this);
+    builder.setDataCallback(this);
+    builder.setErrorCallback(this);
     oboe::Result result = builder.openStream(mStream);
     if (result != oboe::Result::OK) {
         LOGE("Failed to create stream. Error: %s", oboe::convertToText(result));

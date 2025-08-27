@@ -18,16 +18,22 @@
 
 #include <oboe/Oboe.h>
 
-class OboePlayer {
+class OboePlayer : public oboe::AudioStreamDataCallback, public oboe::AudioStreamErrorCallback {
 public:
     void playBeep();
     int16_t *beep_data;
     int beep_data_size;
     int pos = 0;
+
+    oboe::DataCallbackResult onAudioReady(oboe::AudioStream *audioStream, void *audioData, int32_t numFrames) override;
+    bool onError(oboe::AudioStream *, oboe::Result error)  override;
+    void onErrorAfterClose(oboe::AudioStream *, oboe::Result error) override;
+    void onErrorBeforeClose(oboe::AudioStream *, oboe::Result error) override;
 protected:
 //    class MyCallback;
 //    class MyCallback : public oboe::AudioStreamDataCallback;
 private:
+    std::shared_ptr<oboe::AudioStream> mStream;
 };
 
 #endif
