@@ -1,6 +1,6 @@
 // The Android Gradle Plugin builds the native code with the Android NDK.
 
-group = "com.example.android_audio_oboe"
+group = "codeux.design.android_audio_oboe"
 version = "1.0"
 
 buildscript {
@@ -22,14 +22,16 @@ rootProject.allprojects {
     }
 }
 
-apply plugin: "com.android.library"
+plugins {
+    id("com.android.library")
+}
 
 android {
-    namespace = "com.example.android_audio_oboe"
+    namespace = "codeux.design.android_audio_oboe"
 
     // Bumping the plugin compileSdk version requires all clients of this plugin
     // to bump the version in their app.
-    compileSdk = 36
+    compileSdkVersion(36)
 
     // Use the NDK version
     // declared in /android/app/build.gradle file of the Flutter project.
@@ -40,7 +42,7 @@ android {
     // Invoke the shared CMake build with the Android Gradle Plugin.
     externalNativeBuild {
         cmake {
-            path = "../src/CMakeLists.txt"
+            path = file("../src/CMakeLists.txt")
 
             // The default CMake version for the Android Gradle Plugin is 3.10.2.
             // https://developer.android.com/studio/projects/install-ndk#vanilla_cmake
@@ -60,4 +62,8 @@ android {
     defaultConfig {
         minSdk = 24
     }
+}
+
+dependencies {
+    implementation("com.google.oboe:oboe:1.9.3")
 }
