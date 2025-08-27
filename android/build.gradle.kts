@@ -53,6 +53,17 @@ android {
             // version "3.10.2"
         }
     }
+    defaultConfig {
+        externalNativeBuild {
+            cmake {
+                arguments("-DANDROID_STL=c++_shared")
+            }
+        }
+    }
+
+    buildFeatures {
+        prefab = true
+    }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11

@@ -8,8 +8,10 @@ output: 'lib/android_audio_oboe_bindings_generated.dart'
 headers:
   entry-points:
     - 'src/android_audio_oboe.h'
+    - 'src/oboe_player.h'
   include-directives:
     - 'src/android_audio_oboe.h'
+    - 'src/oboe_player.h'
 preamble: |
   // ignore_for_file: always_specify_types
   // ignore_for_file: camel_case_types

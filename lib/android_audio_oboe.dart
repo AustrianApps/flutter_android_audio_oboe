@@ -1,8 +1,11 @@
-
 import 'dart:async';
 import 'dart:ffi';
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:typed_data';
+
+import 'package:ffi/ffi.dart';
+import 'package:flutter/foundation.dart';
 
 import 'android_audio_oboe_bindings_generated.dart';
 
@@ -33,6 +36,16 @@ Future<int> sumAsync(int a, int b) async {
   return completer.future;
 }
 
+void playBeep() {
+  _bindings.play_beep();
+}
+
+void loadBeepData(Int16List data) {
+  final pointer = malloc.allocate<Int16>(data.length * 2);
+  pointer.asTypedList(data.length * 2).setAll(0, data);
+  _bindings.load_beep_data(pointer, data.length);
+}
+
 const String _libName = 'android_audio_oboe';
 
 /// The dynamic library in which the symbols for [AndroidAudioOboeBindings] can be found.
@@ -51,7 +64,6 @@ final DynamicLibrary _dylib = () {
 
 /// The bindings to the native functions in [_dylib].
 final AndroidAudioOboeBindings _bindings = AndroidAudioOboeBindings(_dylib);
-
 
 /// A request to compute `sum`.
 ///

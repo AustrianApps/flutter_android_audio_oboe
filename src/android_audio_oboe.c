@@ -1,5 +1,7 @@
 #include "android_audio_oboe.h"
 
+#include "oboe_player.h"
+
 // A very short-lived native function.
 //
 // For very short-lived functions, it is fine to call them on the main isolate.
@@ -20,4 +22,8 @@ FFI_PLUGIN_EXPORT int sum_long_running(int a, int b) {
   usleep(5000 * 1000);
 #endif
   return a + b;
+}
+
+FFI_PLUGIN_EXPORT void play_beep() {
+    my_play_beep();
 }
