@@ -31,8 +31,14 @@ class AndroidAudioOboeBindings {
   /// For very short-lived functions, it is fine to call them on the main isolate.
   /// They will block the Dart execution while running the native function, so
   /// only do this for native functions which are guaranteed to be short-lived.
-  int sum(int a, int b) {
-    return _sum(a, b);
+  int sum(
+    int a,
+    int b,
+  ) {
+    return _sum(
+      a,
+      b,
+    );
   }
 
   late final _sumPtr =
@@ -44,8 +50,14 @@ class AndroidAudioOboeBindings {
   /// Do not call these kind of native functions in the main isolate. They will
   /// block Dart execution. This will cause dropped frames in Flutter applications.
   /// Instead, call these native functions on a separate isolate.
-  int sum_long_running(int a, int b) {
-    return _sum_long_running(a, b);
+  int sum_long_running(
+    int a,
+    int b,
+  ) {
+    return _sum_long_running(
+      a,
+      b,
+    );
   }
 
   late final _sum_long_runningPtr =
@@ -55,25 +67,44 @@ class AndroidAudioOboeBindings {
   late final _sum_long_running = _sum_long_runningPtr
       .asFunction<int Function(int, int)>();
 
-  void play_beep() {
-    return _play_beep();
-  }
-
-  late final _play_beepPtr = _lookup<ffi.NativeFunction<ffi.Void Function()>>(
-    'play_beep',
-  );
-  late final _play_beep = _play_beepPtr.asFunction<void Function()>();
-
-  void my_play_beep() {
-    return _my_play_beep();
+  void my_play_beep(
+    ffi.Pointer<
+      ffi.NativeFunction<ffi.Void Function(ffi.Int, ffi.Long, ffi.Long)>
+    >
+    fn,
+  ) {
+    return _my_play_beep(
+      fn,
+    );
   }
 
   late final _my_play_beepPtr =
-      _lookup<ffi.NativeFunction<ffi.Void Function()>>('my_play_beep');
-  late final _my_play_beep = _my_play_beepPtr.asFunction<void Function()>();
+      _lookup<
+        ffi.NativeFunction<
+          ffi.Void Function(
+            ffi.Pointer<
+              ffi.NativeFunction<ffi.Void Function(ffi.Int, ffi.Long, ffi.Long)>
+            >,
+          )
+        >
+      >('my_play_beep');
+  late final _my_play_beep = _my_play_beepPtr
+      .asFunction<
+        void Function(
+          ffi.Pointer<
+            ffi.NativeFunction<ffi.Void Function(ffi.Int, ffi.Long, ffi.Long)>
+          >,
+        )
+      >();
 
-  void load_beep_data(ffi.Pointer<ffi.Int16> data, int size) {
-    return _load_beep_data(data, size);
+  void load_beep_data(
+    ffi.Pointer<ffi.Int16> data,
+    int size,
+  ) {
+    return _load_beep_data(
+      data,
+      size,
+    );
   }
 
   late final _load_beep_dataPtr =
@@ -89,7 +120,9 @@ class AndroidAudioOboeBindings {
     >
     fn,
   ) {
-    return _start_recording(fn);
+    return _start_recording(
+      fn,
+    );
   }
 
   late final _start_recordingPtr =

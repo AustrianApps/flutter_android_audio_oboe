@@ -6,6 +6,8 @@
 #define ANDROID_OBOE_PLAYER_H
 
 #include <stdint.h>
+#include <sys/time.h>
+
 
 #if _WIN32
 #define FFI_PLUGIN_EXPORT __declspec(dllexport)
@@ -24,6 +26,9 @@ public:
     int16_t *beep_data;
     int beep_data_size;
     int pos = 0;
+    timeval beep_start_time;
+    timeval beep_finished_time;
+    void (*callback)(int, long, long) = nullptr;
 
     oboe::DataCallbackResult onAudioReady(oboe::AudioStream *audioStream, void *audioData, int32_t numFrames) override;
     bool onError(oboe::AudioStream *, oboe::Result error)  override;
@@ -42,7 +47,7 @@ private:
 extern "C" {
 #endif
 
-FFI_PLUGIN_EXPORT void my_play_beep();
+FFI_PLUGIN_EXPORT void my_play_beep(void (*fn)(int, long, long));
 FFI_PLUGIN_EXPORT void load_beep_data(int16_t *data, int size);
 
 #ifdef __cplusplus

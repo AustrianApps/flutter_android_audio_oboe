@@ -23,7 +23,3 @@ FFI_PLUGIN_EXPORT int sum_long_running(int a, int b) {
 #endif
   return a + b;
 }
-
-FFI_PLUGIN_EXPORT void play_beep() {
-    my_play_beep();
-}

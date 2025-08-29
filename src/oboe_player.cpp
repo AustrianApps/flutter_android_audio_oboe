@@ -21,13 +21,24 @@ OboePlayer::onAudioReady(oboe::AudioStream *audioStream, void *audioData, int32_
     // the stream has and cast to the appropriate type.
     auto *outputData = static_cast<int16_t *>(audioData);
 
+    if (pos == 0) {
+        gettimeofday(&beep_start_time, nullptr);
+        if (callback != nullptr) {
+            callback(1, beep_finished_time.tv_sec, beep_finished_time.tv_usec);
+        }
+    }
+
     // Generate random numbers (white noise) centered around zero.
     for (int i = 0; i < numFrames; ++i) {
         int p = pos++;
         if (p < size) {
             outputData[i] = beep_data[p];
         } else {
-            LOGI("=== onAudioRead() - end of stream reached.");
+            gettimeofday(&beep_finished_time, nullptr);
+            LOGI("=== onAudioRead() - end of stream reached. %ld.%ld", beep_finished_time.tv_sec, beep_finished_time.tv_usec);
+            if (callback != nullptr) {
+                callback(2, beep_finished_time.tv_sec, beep_finished_time.tv_usec);
+            }
             return oboe::DataCallbackResult::Stop;
         }
     }
@@ -118,7 +129,8 @@ void OboePlayer::playBeep() {
 //};
 
 
-void my_play_beep() {
+void my_play_beep(void (*fn)(int, long, long)) {
+    oboePlayer.callback = fn;
     oboePlayer.playBeep();
 }
 

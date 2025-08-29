@@ -38,8 +38,33 @@ Future<int> sumAsync(int a, int b) async {
   return completer.future;
 }
 
-void playBeep() {
-  _bindings.play_beep();
+enum PlayBeepCallback {
+  started,
+  finished,
+}
+
+void playBeep(void Function(PlayBeepCallback type, int sec, int usec) cb) {
+  late final NativeCallable<Void Function(Int, Long, Long)> callback;
+  void playBeepCallback(int type, int sec, int usec) {
+    switch (type) {
+      case 1:
+        // start beep;
+        cb(PlayBeepCallback.started, sec, usec);
+        break;
+      case 2:
+        // beep finished.
+        cb(PlayBeepCallback.finished, sec, usec);
+        callback.close();
+        break;
+      default:
+        throw UnsupportedError('Unsupported type: $type');
+    }
+  }
+
+  callback = NativeCallable<Void Function(Int, ffi.Long, ffi.Long)>.listener(
+    playBeepCallback,
+  );
+  _bindings.my_play_beep(callback.nativeFunction);
 }
 
 void loadBeepData(Int16List data) {

@@ -71,7 +71,11 @@ class _MyAppState extends State<MyApp> {
                   );
                   final int16List = data.buffer.asInt16List();
                   android_audio_oboe.loadBeepData(int16List);
-                  android_audio_oboe.playBeep();
+                  android_audio_oboe.playBeep((type, sec, usec) {
+                    print(
+                      '${type.name}: $sec.${usec.toString().padLeft(6, '0')}',
+                    );
+                  });
                 },
                 child: Text("Press me."),
               ),
