@@ -1,14 +1,15 @@
 import 'dart:async';
-import 'dart:ffi';
 import 'dart:ffi' as ffi;
+import 'dart:ffi';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
-import 'package:flutter/foundation.dart';
 
 import 'android_audio_oboe_bindings_generated.dart';
+
+export './src/rms_recorder.dart';
 
 /// A very short-lived native function.
 ///
@@ -60,9 +61,11 @@ class OboeRecorder {
       throw StateError('Error while starting recording.');
     }
   }
+
   late final NativeCallable<Void Function(Pointer<Float>, Int)> callback;
   final sink = StreamController<Float32List>();
   late final stream = sink.stream;
+
   void onData(ffi.Pointer<ffi.Float> data, int size) {
     final rmsData = data.asTypedList(size);
     sink.add(rmsData);
