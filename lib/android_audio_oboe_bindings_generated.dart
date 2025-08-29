@@ -82,4 +82,44 @@ class AndroidAudioOboeBindings {
       >('load_beep_data');
   late final _load_beep_data = _load_beep_dataPtr
       .asFunction<void Function(ffi.Pointer<ffi.Int16>, int)>();
+
+  int start_recording(
+    ffi.Pointer<
+      ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Float>, ffi.Int)>
+    >
+    fn,
+  ) {
+    return _start_recording(fn);
+  }
+
+  late final _start_recordingPtr =
+      _lookup<
+        ffi.NativeFunction<
+          ffi.Int Function(
+            ffi.Pointer<
+              ffi.NativeFunction<
+                ffi.Void Function(ffi.Pointer<ffi.Float>, ffi.Int)
+              >
+            >,
+          )
+        >
+      >('start_recording');
+  late final _start_recording = _start_recordingPtr
+      .asFunction<
+        int Function(
+          ffi.Pointer<
+            ffi.NativeFunction<
+              ffi.Void Function(ffi.Pointer<ffi.Float>, ffi.Int)
+            >
+          >,
+        )
+      >();
+
+  int stop_recording() {
+    return _stop_recording();
+  }
+
+  late final _stop_recordingPtr =
+      _lookup<ffi.NativeFunction<ffi.Int Function()>>('stop_recording');
+  late final _stop_recording = _stop_recordingPtr.asFunction<int Function()>();
 }

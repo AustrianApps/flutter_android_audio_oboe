@@ -8,6 +8,7 @@ project(android_audio_oboe_library VERSION 0.0.1 LANGUAGES C CXX)
 add_library(android_audio_oboe SHARED
         "android_audio_oboe.c"
         "oboe_player.cpp"
+        "oboe_recorder.cpp"
 )
 
 set_target_properties(android_audio_oboe PROPERTIES

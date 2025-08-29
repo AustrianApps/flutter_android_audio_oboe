@@ -9,9 +9,11 @@ headers:
   entry-points:
     - 'src/android_audio_oboe.h'
     - 'src/oboe_player.h'
+    - 'src/oboe_recorder.h'
   include-directives:
     - 'src/android_audio_oboe.h'
     - 'src/oboe_player.h'
+    - 'src/oboe_recorder.h'
 preamble: |
   // ignore_for_file: always_specify_types
   // ignore_for_file: camel_case_types

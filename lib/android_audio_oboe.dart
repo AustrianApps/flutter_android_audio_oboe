@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:ffi';
+import 'dart:ffi' as ffi;
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
@@ -44,6 +45,38 @@ void loadBeepData(Int16List data) {
   final pointer = malloc.allocate<Int16>(data.length * 2);
   pointer.asTypedList(data.length * 2).setAll(0, data);
   _bindings.load_beep_data(pointer, data.length);
+}
+
+class OboeRecorder {
+  OboeRecorder.startRecording() {
+    // ffi.Void onData(ffi.Pointer<ffi.Float> data, ffi.Int size) {}
+    callback =
+        NativeCallable<ffi.Void Function(ffi.Pointer<Float>, ffi.Int)>.listener(
+          onData,
+        );
+    final ret = _bindings.start_recording(callback.nativeFunction);
+    if (ret != 0) {
+      callback.close();
+      throw StateError('Error while starting recording.');
+    }
+  }
+  late final NativeCallable<Void Function(Pointer<Float>, Int)> callback;
+  final sink = StreamController<Float32List>();
+  late final stream = sink.stream;
+  void onData(ffi.Pointer<ffi.Float> data, int size) {
+    final rmsData = data.asTypedList(size);
+    sink.add(rmsData);
+    calloc.free(data);
+  }
+
+  void stop() {
+    _bindings.stop_recording();
+    callback.close();
+  }
+}
+
+OboeRecorder? startRecording() {
+  return OboeRecorder.startRecording();
 }
 
 const String _libName = 'android_audio_oboe';
