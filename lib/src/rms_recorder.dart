@@ -25,6 +25,12 @@ class OboeRmsRecorder {
           return;
         }
         final rms = _calcRms(data, butterworth);
+        if (!rms.isFinite) {
+          _logger.warning(
+            'Invalid infinite rms. return. data.length: ${data.length}',
+          );
+          return;
+        }
         _sink.add(rms);
       } else {
         final availableSamples = data.length;
@@ -43,6 +49,12 @@ class OboeRmsRecorder {
             data.sublist(start, length),
             butterworth,
           );
+          if (!rms.isFinite) {
+            _logger.warning(
+              'Invalid infinite rms. return. data.length: ${data.length} start: $start',
+            );
+            return;
+          }
           // _logger.finer("sending $rms (${frameList.length})");
           _sink.add(rms);
         }
