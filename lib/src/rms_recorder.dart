@@ -4,6 +4,9 @@ import 'dart:typed_data';
 
 import 'package:android_audio_oboe/android_audio_oboe.dart';
 import 'package:iirjdart/butterworth.dart';
+import 'package:logging/logging.dart';
+
+final _logger = Logger('rms_recorder');
 
 class OboeRmsRecorder {
   final int rmsCalcFrameSize;
@@ -17,6 +20,10 @@ class OboeRmsRecorder {
     recorder = OboeRecorder.startRecording();
     recorder.stream.listen((data) {
       if (rmsCalcFrameSize <= 0) {
+        if (data.isEmpty) {
+          _logger.fine('Empty samples. return.');
+          return;
+        }
         final rms = _calcRms(data, butterworth);
         _sink.add(rms);
       } else {
@@ -27,8 +34,13 @@ class OboeRmsRecorder {
           start < availableSamples;
           start += samplesPerFrame
         ) {
+          final length = min(data.length, start + samplesPerFrame);
+          if (length == 0) {
+            _logger.warning('Empty samples. return.');
+            continue;
+          }
           final rms = _calcRms(
-            data.sublist(start, min(data.length, start + samplesPerFrame)),
+            data.sublist(start, length),
             butterworth,
           );
           // _logger.finer("sending $rms (${frameList.length})");
