@@ -24,7 +24,7 @@ OboePlayer::onAudioReady(oboe::AudioStream *audioStream, void *audioData, int32_
     if (pos == 0) {
         gettimeofday(&beep_start_time, nullptr);
         if (callback != nullptr) {
-            callback(1, beep_finished_time.tv_sec, beep_finished_time.tv_usec);
+            callback(1, beep_start_time.tv_sec, beep_start_time.tv_usec);
         }
     }
 
