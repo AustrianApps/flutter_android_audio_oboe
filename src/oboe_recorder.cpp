@@ -21,6 +21,7 @@ public:
         builder.setSharingMode(oboe::SharingMode::Exclusive);
         builder.setFormat(oboe::AudioFormat::Float);
         builder.setChannelCount(oboe::ChannelCount::Mono);
+        builder.setSampleRate(4000);
         builder.setDataCallback(this);
         builder.setErrorCallback(this);
         oboe::Result result = builder.openStream(mStream);
