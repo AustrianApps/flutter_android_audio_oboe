@@ -21,7 +21,7 @@ class OboeRmsRecorder {
     recorder = OboeRecorder.startRecording();
     recorder.stream.listen((data) {
       for (final x in data) {
-        if (x < -1 || x > -1) {
+        if (x < -1 || x > 1) {
           _logger.warning('Invalid sample. return. x: $x');
           return;
         }
