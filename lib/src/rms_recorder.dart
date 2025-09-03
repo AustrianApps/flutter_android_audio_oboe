@@ -13,12 +13,12 @@ class OboeRmsRecorder {
   late final OboeRecorder recorder;
   final _sink = StreamController<double>();
   Stream<double> get stream => _sink.stream;
+  var lastSampleCount = -1;
 
   OboeRmsRecorder.startRecording({this.rmsCalcFrameSize = 40}) {
     final butterworth = Butterworth();
     butterworth.bandPass(6, 8000, 300, 400);
     recorder = OboeRecorder.startRecording();
-    var lastSampleCount = -1;
     recorder.stream.listen((data) {
       for (final x in data) {
         if (x < -1 || x > -1) {
