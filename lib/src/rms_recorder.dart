@@ -28,7 +28,7 @@ class OboeRmsRecorder {
       }
       if (lastSamples != data.length) {
         lastSamples = data.length;
-        _logger.finer('sample size: $lastSamples');
+        _logger.fine('sample size: $lastSamples');
       }
       if (rmsCalcFrameSize <= 0) {
         if (data.isEmpty) {
