@@ -88,7 +88,7 @@ class OboeRecorder {
   }
 
   late final NativeCallable<Void Function(Pointer<Float>, Int)> callback;
-  final sink = StreamController<Float32List>();
+  final sink = StreamController<Float32List>(sync: true);
   late final stream = sink.stream;
 
   void onData(ffi.Pointer<ffi.Float> data, int size) {
