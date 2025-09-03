@@ -18,7 +18,7 @@ class OboeRmsRecorder {
     final butterworth = Butterworth();
     butterworth.bandPass(6, 8000, 300, 400);
     recorder = OboeRecorder.startRecording();
-    var lastSamples = 0;
+    var lastSampleCount = -1;
     recorder.stream.listen((data) {
       for (final x in data) {
         if (x < -1 || x > -1) {
@@ -26,9 +26,9 @@ class OboeRmsRecorder {
           return;
         }
       }
-      if (lastSamples != data.length) {
-        lastSamples = data.length;
-        _logger.fine('sample size: $lastSamples');
+      if (lastSampleCount != data.length) {
+        lastSampleCount = data.length;
+        _logger.fine('sample size: $lastSampleCount');
       }
       if (rmsCalcFrameSize <= 0) {
         if (data.isEmpty) {
