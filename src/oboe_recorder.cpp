@@ -67,6 +67,9 @@ public:
 
     oboe::DataCallbackResult onAudioReady(oboe::AudioStream *audioStream, void *audioData, int32_t numFrames) override {
 //        LOGI("==== OboeRecorder onAudioReady() numFrames:%d", numFrames);
+        if (audioStream->getFormat() != oboe::AudioFormat::Float) {
+            LOGE("OboeRecorder AudioStream format is not Float");
+        }
 
         // Calculate the size of the data in bytes
         size_t bufferSize = numFrames * sizeof(float);
