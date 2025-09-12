@@ -44,11 +44,11 @@ public:
             LOGE("OboeRecorder Failed to start stream. Error: %s", oboe::convertToText(startRequest));
             return 1;
         }
-        auto sampleRate = mStream->getSampleRate();
+        auto actualSampleRate = mStream->getSampleRate();
         auto millis = mStream->calculateLatencyMillis();
-        auto framesPerDataCallback = mStream->getFramesPerDataCallback();
+        auto actualFramesPerDataCallback = mStream->getFramesPerDataCallback();
         LOGI("OboeRecorder Successfully opened stream. sampleRate: %d, latency: %fms, framesPerDataCallback: %d",
-                sampleRate, millis.value(), framesPerDataCallback);
+                actualSampleRate, millis.value(), actualFramesPerDataCallback);
         return 0;
     }
 
