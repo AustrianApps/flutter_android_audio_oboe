@@ -13,6 +13,8 @@ private:
     std::shared_ptr <oboe::AudioStream> mStream;
 public:
     void (*callback)(float *, int);
+    int sampleRate = 8000;
+    int framesPerDataCallback = 0;
 
     int startRecording() {
         oboe::AudioStreamBuilder builder;
@@ -21,7 +23,13 @@ public:
         builder.setSharingMode(oboe::SharingMode::Exclusive);
         builder.setFormat(oboe::AudioFormat::Float);
         builder.setChannelCount(oboe::ChannelCount::Mono);
-        builder.setSampleRate(8000);
+        builder.setSampleRate(sampleRate);
+//        "The usage is ignored for input streams"
+//        builder.setUsage(oboe::Usage::Game);
+        builder.setInputPreset(oboe::InputPreset::Unprocessed);
+        if (framesPerDataCallback > 0) {
+            builder.setFramesPerDataCallback(framesPerDataCallback);
+        }
         builder.setDataCallback(this);
         builder.setErrorCallback(this);
         oboe::Result result = builder.openStream(mStream);
@@ -63,6 +71,7 @@ public:
 
     bool onError(oboe::AudioStream *, oboe::Result error) override {
         LOGI("==== OboeRecorder onError() error:%d", error);
+        return false;
     }
 
     oboe::DataCallbackResult onAudioReady(oboe::AudioStream *audioStream, void *audioData, int32_t numFrames) override {
@@ -75,7 +84,7 @@ public:
         size_t bufferSize = numFrames * sizeof(float);
 
         // Allocate new memory
-        float *copiedAudioData = static_cast<float *>(malloc(bufferSize));
+        auto *copiedAudioData = static_cast<float *>(malloc(bufferSize));
 
         if (copiedAudioData == nullptr) {
             // Handle memory allocation failure, e.g., log an error
@@ -100,6 +109,11 @@ public:
 
 
 static OboeRecorder oboeRecorder;
+
+FFI_PLUGIN_EXPORT int oboe_options(int sampleRate, int framesPerDataCallback) {
+    oboeRecorder.sampleRate = sampleRate;
+    oboeRecorder.framesPerDataCallback = framesPerDataCallback;
+}
 
 
 FFI_PLUGIN_EXPORT int start_recording(void (*callback)(float *, int)) {

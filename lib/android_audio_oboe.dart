@@ -97,6 +97,16 @@ class OboeRecorder {
     calloc.free(data);
   }
 
+  void setRecorderOptions({
+    int sampleRate = 8000,
+    int framesPerDataCallback = 0,
+  }) {
+    _bindings.oboe_options(
+      sampleRate,
+      framesPerDataCallback,
+    );
+  }
+
   void stop() {
     _bindings.stop_recording();
     callback.close();

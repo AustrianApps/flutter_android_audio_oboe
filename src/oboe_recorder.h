@@ -32,6 +32,8 @@ FFI_PLUGIN_EXPORT int start_recording(void (*fn)(float *, int));
 
 FFI_PLUGIN_EXPORT int stop_recording();
 
+FFI_PLUGIN_EXPORT int oboe_options(int sampleRate, int framesPerDataCallback);
+
 #ifdef __cplusplus
 }
 #endif

@@ -155,4 +155,21 @@ class AndroidAudioOboeBindings {
   late final _stop_recordingPtr =
       _lookup<ffi.NativeFunction<ffi.Int Function()>>('stop_recording');
   late final _stop_recording = _stop_recordingPtr.asFunction<int Function()>();
+
+  int oboe_options(
+    int sampleRate,
+    int framesPerDataCallback,
+  ) {
+    return _oboe_options(
+      sampleRate,
+      framesPerDataCallback,
+    );
+  }
+
+  late final _oboe_optionsPtr =
+      _lookup<ffi.NativeFunction<ffi.Int Function(ffi.Int, ffi.Int)>>(
+        'oboe_options',
+      );
+  late final _oboe_options = _oboe_optionsPtr
+      .asFunction<int Function(int, int)>();
 }
