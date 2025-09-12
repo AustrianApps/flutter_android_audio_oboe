@@ -19,6 +19,10 @@ class OboeRmsRecorder {
     final butterworth = Butterworth();
     butterworth.bandPass(6, 8000, 300, 400);
     recorder = OboeRecorder.startRecording();
+    final rmsCalculator = RmsCalculator(
+      rmsCalcFrameSize: rmsCalcFrameSize,
+      filter: butterworth,
+    );
     recorder.stream.listen((data) {
       for (final x in data) {
         if (x < -1 || x > 1) {
@@ -26,50 +30,9 @@ class OboeRmsRecorder {
           return;
         }
       }
-      if (lastSampleCount != data.length) {
-        lastSampleCount = data.length;
-        _logger.fine('sample size: $lastSampleCount');
-      }
-      if (rmsCalcFrameSize <= 0) {
-        if (data.isEmpty) {
-          _logger.fine('Empty samples. return.');
-          return;
-        }
-        final rms = _calcRms(data, butterworth);
-        if (!rms.isFinite) {
-          _logger.warning(
-            'Invalid infinite rms. return. data.length: ${data.length}',
-          );
-          return;
-        }
+      rmsCalculator.calcRms(data, (rms) {
         _sink.add(rms);
-      } else {
-        final availableSamples = data.length;
-        final samplesPerFrame = rmsCalcFrameSize;
-        for (
-          int start = 0;
-          start < availableSamples;
-          start += samplesPerFrame
-        ) {
-          final length = min(data.length, start + samplesPerFrame);
-          if (length == 0) {
-            _logger.warning('Empty samples. return.');
-            continue;
-          }
-          final rms = _calcRms(
-            data.sublist(start, length),
-            butterworth,
-          );
-          if (!rms.isFinite) {
-            _logger.warning(
-              'Invalid infinite rms. return. data.length: ${data.length} start: $start',
-            );
-            return;
-          }
-          // _logger.finer("sending $rms (${frameList.length})");
-          _sink.add(rms);
-        }
-      }
+      });
     });
   }
 
@@ -89,5 +52,32 @@ class OboeRmsRecorder {
     }
 
     return sqrt(absData.reduce((a, b) => a + b) / absData.length);
+  }
+}
+
+class RmsCalculator {
+  RmsCalculator({
+    required this.rmsCalcFrameSize,
+    required this.filter,
+  });
+
+  final int rmsCalcFrameSize;
+  final Butterworth? filter;
+
+  double _absValue = 0;
+  int _absCount = 0;
+
+  void calcRms(Float32List audioData, void Function(double rms) onRms) {
+    for (var i = 0; audioData.length > i; i++) {
+      final v = filter?.filter(audioData[i]) ?? audioData[i];
+      _absValue += pow(v, 2.0).toDouble();
+      _absCount++;
+      if (_absCount > rmsCalcFrameSize) {
+        final rms = sqrt(_absValue / _absCount);
+        _absValue = 0;
+        _absCount = 0;
+        onRms(rms);
+      }
+    }
   }
 }
