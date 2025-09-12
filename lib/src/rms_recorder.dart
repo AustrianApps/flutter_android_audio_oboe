@@ -23,6 +23,9 @@ class OboeRmsRecorder {
       rmsCalcFrameSize: rmsCalcFrameSize,
       filter: butterworth,
     );
+    _logger.info(
+      'Staring recording with rmsCalcFrameSize: $rmsCalcFrameSize , butterworth: $butterworth',
+    );
     recorder.stream.listen((data) {
       for (final x in data) {
         if (x < -1 || x > 1) {
