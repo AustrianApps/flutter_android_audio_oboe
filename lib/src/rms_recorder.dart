@@ -36,6 +36,7 @@ class OboeRmsRecorder {
       if (lastSampleCount != data.length) {
         lastSampleCount = data.length;
         _logger.fine('sample size: $lastSampleCount');
+        print('sample size: $lastSampleCount');
       }
       rmsCalculator.calcRms(data, (rms) {
         _sink.add(rms);
