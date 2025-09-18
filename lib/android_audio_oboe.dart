@@ -6,10 +6,13 @@ import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
+import 'package:logging/logging.dart';
 
 import 'android_audio_oboe_bindings_generated.dart';
 
 export './src/rms_recorder.dart';
+
+final _logger = Logger('android_audio_oboe');
 
 /// A very short-lived native function.
 ///
@@ -74,20 +77,39 @@ void loadBeepData(Int16List data) {
 }
 
 class OboeRecorder {
-  OboeRecorder.startRecording() {
+  OboeRecorder.startRecording({
+    int sampleRate = 8000,
+    int framesPerDataCallback = 0,
+    int deviceId = 0,
+  }) {
+    _bindings.oboe_options(
+      sampleRate,
+      framesPerDataCallback,
+      deviceId,
+    );
     // ffi.Void onData(ffi.Pointer<ffi.Float> data, ffi.Int size) {}
     callback =
         NativeCallable<ffi.Void Function(ffi.Pointer<Float>, ffi.Int)>.listener(
           onData,
         );
-    final ret = _bindings.start_recording(callback.nativeFunction);
+    onErrorAfterCloseCallback =
+        NativeCallable<Void Function(ffi.Int32)>.listener(
+          onErrorAfterClose,
+        );
+
+    final ret = _bindings.start_recording(
+      callback.nativeFunction,
+      onErrorAfterCloseCallback.nativeFunction,
+    );
     if (ret != 0) {
       callback.close();
+      onErrorAfterCloseCallback.close();
       throw StateError('Error while starting recording.');
     }
   }
 
   late final NativeCallable<Void Function(Pointer<Float>, Int)> callback;
+  late final NativeCallable<Void Function(ffi.Int32)> onErrorAfterCloseCallback;
   final sink = StreamController<Float32List>(sync: true);
   late final stream = sink.stream;
 
@@ -97,19 +119,37 @@ class OboeRecorder {
     calloc.free(data);
   }
 
+  void onErrorAfterClose(int errorCode) {
+    final result = OboeResult.fromValue(errorCode);
+    _logger.fine(
+      'onErrorAfterClose $errorCode ($result). Closing stream. and disposing.',
+    );
+    sink.addError(StateError('Error while recording. $errorCode $result'));
+    sink.close();
+    dispose();
+  }
+
   void setRecorderOptions({
     int sampleRate = 8000,
     int framesPerDataCallback = 0,
+    int deviceId = 0,
   }) {
     _bindings.oboe_options(
       sampleRate,
       framesPerDataCallback,
+      deviceId,
     );
   }
 
   void stop() {
     _bindings.stop_recording();
+    dispose();
+  }
+
+  void dispose() {
+    sink.close();
     callback.close();
+    onErrorAfterCloseCallback.close();
   }
 }
 
@@ -212,3 +252,48 @@ Future<SendPort> _helperIsolateSendPort = () async {
   // can start sending requests.
   return completer.future;
 }();
+
+enum OboeResult {
+  ok(0), // AAUDIO_OK
+  errorBase(-900), // AAUDIO_ERROR_BASE
+  errorDisconnected(-899), // AAUDIO_ERROR_DISCONNECTED
+  errorIllegalArgument(-898), // AAUDIO_ERROR_ILLEGAL_ARGUMENT
+  errorInternal(-896), // AAUDIO_ERROR_INTERNAL
+  errorInvalidState(-895), // AAUDIO_ERROR_INVALID_STATE
+  errorInvalidHandle(-892), // AAUDIO_ERROR_INVALID_HANDLE
+  errorUnimplemented(-890), // AAUDIO_ERROR_UNIMPLEMENTED
+  errorUnavailable(-889), // AAUDIO_ERROR_UNAVAILABLE
+  errorNoFreeHandles(-888), // AAUDIO_ERROR_NO_FREE_HANDLES
+  errorNoMemory(-887), // AAUDIO_ERROR_NO_MEMORY
+  errorNull(-886), // AAUDIO_ERROR_NULL
+  errorTimeout(-885), // AAUDIO_ERROR_TIMEOUT
+  errorWouldBlock(-884), // AAUDIO_ERROR_WOULD_BLOCK
+  errorInvalidFormat(-883), // AAUDIO_ERROR_INVALID_FORMAT
+  errorOutOfRange(-882), // AAUDIO_ERROR_OUT_OF_RANGE
+  errorNoService(-881), // AAUDIO_ERROR_NO_SERVICE
+  errorInvalidRate(-880), // AAUDIO_ERROR_INVALID_RATE
+  reserved1(-879),
+  reserved2(-878),
+  reserved3(-877),
+  reserved4(-876),
+  reserved5(-875),
+  reserved6(-874),
+  reserved7(-873),
+  reserved8(-872),
+  reserved9(-871),
+  reserved10(-870),
+  errorClosed(-869),
+  unknown(-999);
+
+  final int value;
+  const OboeResult(this.value);
+
+  /// Converts an int into a Result enum value.
+  /// Returns null if no matching value exists.
+  static OboeResult fromValue(int value) {
+    return OboeResult.values.firstWhere(
+      (e) => e.value == value,
+      orElse: () => OboeResult.unknown,
+    );
+  }
+}

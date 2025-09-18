@@ -76,5 +76,5 @@ android {
 }
 
 dependencies {
-    implementation("com.google.oboe:oboe:1.9.3")
+    implementation("com.google.oboe:oboe:1.10.0")
 }

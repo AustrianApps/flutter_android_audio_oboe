@@ -7,14 +7,33 @@
 
 #include <oboe/Oboe.h>
 #include <cstring> // Required for memcpy
+#include <vector>
+
+
+std::string toDebugString(const std::vector <int32_t> &v) {
+    std::ostringstream oss;
+    oss << "[";
+    for (size_t i = 0; i < v.size(); ++i) {
+        oss << v[i];
+        if (i + 1 < v.size()) {
+            oss << ", ";
+        }
+    }
+    oss << "]";
+    return oss.str();
+}
+
 
 class OboeRecorder : public oboe::AudioStreamDataCallback, public oboe::AudioStreamErrorCallback {
 private:
     std::shared_ptr <oboe::AudioStream> mStream;
 public:
     void (*callback)(float *, int);
+    void (*onErrorAfterCloseCallback)(int32_t errorCode);
+
     int sampleRate = 8000;
     int framesPerDataCallback = 0;
+    int32_t deviceId = 0;
 
     int startRecording() {
         oboe::AudioStreamBuilder builder;
@@ -24,6 +43,10 @@ public:
         builder.setFormat(oboe::AudioFormat::Float);
         builder.setChannelCount(oboe::ChannelCount::Mono);
         builder.setSampleRate(sampleRate);
+        if (deviceId > 0) {
+            LOGI("Using device %d", deviceId);
+            builder.setDeviceId(deviceId);
+        }
 //        "The usage is ignored for input streams"
 //        builder.setUsage(oboe::Usage::Game);
         builder.setInputPreset(oboe::InputPreset::Unprocessed);
@@ -47,8 +70,8 @@ public:
         auto actualSampleRate = mStream->getSampleRate();
         auto millis = mStream->calculateLatencyMillis();
         auto actualFramesPerDataCallback = mStream->getFramesPerDataCallback();
-        LOGI("OboeRecorder Successfully opened stream. sampleRate: %d, latency: %fms, framesPerDataCallback: %d",
-                actualSampleRate, millis.value(), actualFramesPerDataCallback);
+        LOGI("OboeRecorder Successfully opened stream. sampleRate: %d, latency: %fms, framesPerDataCallback: %d, deviceId: %d, deviceIds: %s",
+                actualSampleRate, millis.value(), actualFramesPerDataCallback, mStream->getDeviceId(), toDebugString(mStream->getDeviceIds()).c_str());
         return 0;
     }
 
@@ -62,15 +85,18 @@ public:
     }
 
     void onErrorBeforeClose(oboe::AudioStream *, oboe::Result error) override {
-        LOGI("==== OboeRecorder onErrorBeforeClose() error:%d", error);
+        LOGI("==== OboeRecorder onErrorBeforeClose() error:%d / %s", error, oboe::convertToText(error));
     }
 
     void onErrorAfterClose(oboe::AudioStream *, oboe::Result error) override {
-        LOGI("==== OboeRecorder onErrorAfterClose() error:%d", error);
+        LOGI("==== OboeRecorder onErrorAfterClose() error:%d / %s", error, oboe::convertToText(error));
+        if (onErrorAfterCloseCallback != nullptr) {
+            onErrorAfterCloseCallback((int32_t) error);
+        }
     }
 
     bool onError(oboe::AudioStream *, oboe::Result error) override {
-        LOGI("==== OboeRecorder onError() error:%d", error);
+        LOGI("==== OboeRecorder onError() error:%d / %s", error, oboe::convertToText(error));
         return false;
     }
 
@@ -78,6 +104,14 @@ public:
 //        LOGI("==== OboeRecorder onAudioReady() numFrames:%d", numFrames);
         if (audioStream->getFormat() != oboe::AudioFormat::Float) {
             LOGE("OboeRecorder AudioStream format is not Float");
+        }
+        auto state = audioStream->getState();
+        if (state != oboe::StreamState::Started) {
+            LOGW("OboeRecorder AudioStream state is not Open: %s", oboe::convertToText(audioStream->getState()));
+        }
+        if (state == oboe::StreamState::Disconnected) {
+            LOGW("OboeRecorder AudioStream state is Disconnected, stopping.");
+            return oboe::DataCallbackResult::Stop;
         }
 
         // Calculate the size of the data in bytes
@@ -110,14 +144,16 @@ public:
 
 static OboeRecorder oboeRecorder;
 
-FFI_PLUGIN_EXPORT int oboe_options(int sampleRate, int framesPerDataCallback) {
+FFI_PLUGIN_EXPORT void oboe_options(int sampleRate, int framesPerDataCallback, int32_t deviceId) {
     oboeRecorder.sampleRate = sampleRate;
     oboeRecorder.framesPerDataCallback = framesPerDataCallback;
+    oboeRecorder.deviceId = deviceId;
 }
 
 
-FFI_PLUGIN_EXPORT int start_recording(void (*callback)(float *, int)) {
+FFI_PLUGIN_EXPORT int start_recording(void (*callback)(float *, int), void (*onErrorAfterCloseCallback)(int32_t errorCode)) {
     oboeRecorder.callback = callback;
+    oboeRecorder.onErrorAfterCloseCallback = onErrorAfterCloseCallback;
     return oboeRecorder.startRecording();
 }
 

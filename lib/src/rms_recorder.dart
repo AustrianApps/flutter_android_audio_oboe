@@ -15,10 +15,19 @@ class OboeRmsRecorder {
   Stream<double> get stream => _sink.stream;
   var lastSampleCount = -1;
 
-  OboeRmsRecorder.startRecording({this.rmsCalcFrameSize = 40}) {
+  OboeRmsRecorder.startRecording({
+    this.rmsCalcFrameSize = 40,
+    int sampleRate = 8000,
+    int framesPerDataCallback = 0,
+    int deviceId = 0,
+  }) {
     final butterworth = Butterworth();
     butterworth.bandPass(6, 8000, 300, 400);
-    recorder = OboeRecorder.startRecording();
+    recorder = OboeRecorder.startRecording(
+      sampleRate: sampleRate,
+      framesPerDataCallback: framesPerDataCallback,
+      deviceId: deviceId,
+    );
     final rmsCalculator = RmsCalculator(
       rmsCalcFrameSize: rmsCalcFrameSize,
       filter: butterworth,

@@ -28,11 +28,11 @@
 extern "C" {
 #endif
 
-FFI_PLUGIN_EXPORT int start_recording(void (*fn)(float *, int));
+FFI_PLUGIN_EXPORT int start_recording(void (*fn)(float *, int), void (*onErrorAfterCloseCallback)(int32_t errorCode));
 
 FFI_PLUGIN_EXPORT int stop_recording();
 
-FFI_PLUGIN_EXPORT int oboe_options(int sampleRate, int framesPerDataCallback);
+FFI_PLUGIN_EXPORT void oboe_options(int sampleRate, int framesPerDataCallback, int32_t deviceId);
 
 #ifdef __cplusplus
 }

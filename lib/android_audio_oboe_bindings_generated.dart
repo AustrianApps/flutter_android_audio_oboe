@@ -119,9 +119,12 @@ class AndroidAudioOboeBindings {
       ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Float>, ffi.Int)>
     >
     fn,
+    ffi.Pointer<ffi.NativeFunction<ffi.Void Function(ffi.Int32 errorCode)>>
+    onErrorAfterCloseCallback,
   ) {
     return _start_recording(
       fn,
+      onErrorAfterCloseCallback,
     );
   }
 
@@ -134,6 +137,9 @@ class AndroidAudioOboeBindings {
                 ffi.Void Function(ffi.Pointer<ffi.Float>, ffi.Int)
               >
             >,
+            ffi.Pointer<
+              ffi.NativeFunction<ffi.Void Function(ffi.Int32 errorCode)>
+            >,
           )
         >
       >('start_recording');
@@ -144,6 +150,9 @@ class AndroidAudioOboeBindings {
             ffi.NativeFunction<
               ffi.Void Function(ffi.Pointer<ffi.Float>, ffi.Int)
             >
+          >,
+          ffi.Pointer<
+            ffi.NativeFunction<ffi.Void Function(ffi.Int32 errorCode)>
           >,
         )
       >();
@@ -156,20 +165,22 @@ class AndroidAudioOboeBindings {
       _lookup<ffi.NativeFunction<ffi.Int Function()>>('stop_recording');
   late final _stop_recording = _stop_recordingPtr.asFunction<int Function()>();
 
-  int oboe_options(
+  void oboe_options(
     int sampleRate,
     int framesPerDataCallback,
+    int deviceId,
   ) {
     return _oboe_options(
       sampleRate,
       framesPerDataCallback,
+      deviceId,
     );
   }
 
   late final _oboe_optionsPtr =
-      _lookup<ffi.NativeFunction<ffi.Int Function(ffi.Int, ffi.Int)>>(
-        'oboe_options',
-      );
+      _lookup<
+        ffi.NativeFunction<ffi.Void Function(ffi.Int, ffi.Int, ffi.Int32)>
+      >('oboe_options');
   late final _oboe_options = _oboe_optionsPtr
-      .asFunction<int Function(int, int)>();
+      .asFunction<void Function(int, int, int)>();
 }
